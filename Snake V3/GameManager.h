@@ -4,7 +4,7 @@
 struct Snake {
     bool    Alive;
     int     Dir;
-    int     Lenght;
+    int     Length;
     Vector2 head;
     Vector2 tail[GRID_HEIGHT * GRID_WIDTH];
 };
@@ -15,8 +15,8 @@ class GameManager {
 public:
     Vector2 apple;
     struct Snake snake;
-    int tempDir;
-    int frameCount;
+    int tempDir; // Temporary direction to prevent immediate direction reversals.
+    int frameCount; // Frame counter for game updates.
     int speed;
 
     void Init();

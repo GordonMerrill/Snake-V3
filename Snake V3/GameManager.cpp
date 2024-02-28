@@ -1,52 +1,53 @@
 #include "GameManager.h"
 #include "MenuManager.h"
 
-void GameManager::Init() { // Initializes game settings, including window size and position, and sets up the initial state of the snake and apple.
-    screenWidth = GRID_WIDTH * GRID_UNIT_SIZE + BORDER_SIZE * 2;
+// Initializes game settings, including window size and position, and sets up the initial state of the snake and apple.
+void GameManager::Init() {
+    // Set screen dimensions based on grid size and border.
+    screenWidth  = GRID_WIDTH  * GRID_UNIT_SIZE + BORDER_SIZE * 2;
     screenHeight = GRID_HEIGHT * GRID_UNIT_SIZE + BORDER_SIZE * 2;
     SetWindowSize(screenWidth, screenHeight);
 
-    SetWindowPosition(GetMonitorWidth(GetCurrentMonitor()) * .5 - screenWidth * .5, GetMonitorHeight(GetCurrentMonitor()) * .5 - screenHeight * .5);
+    SetWindowPosition(GetMonitorWidth(GetCurrentMonitor()) * .5 - screenWidth * .5, GetMonitorHeight(GetCurrentMonitor()) * .5 - screenHeight * .5); // Center the game window on the screen.
 
     frameCount = 0;
     tempDir = 0;
 
-    // Snake Setup
-    snake.Alive = true;
-    snake.head.x = GRID_WIDTH / 2.f;
+    // Initialize snake properties.
+    snake.Alive  = true;
+    snake.head.x = GRID_WIDTH  / 2.f; // Start position in the middle of the grid.
     snake.head.y = GRID_HEIGHT / 2.f;
-    snake.Dir = 0;
-    snake.Lenght = 3;
+    snake.Dir    = 0;                 // Initial direction.
+    snake.Length = 3;                 // Starting length.
 
-    for (int i = 0; i < snake.Lenght; i++) {
+    // Set initial tail positions to the same as the head.
+    for (int i = 0; i < snake.Length; i++) {
         snake.tail[i].x = snake.head.x;
         snake.tail[i].y = snake.head.y;
     }
 
-    // Apple Setup
-    RandomizeApplePosition();
+    RandomizeApplePosition(); // Place the apple in a random position.
 }
 
+// Helper function to check if a position is occupied by the snake.
+bool IsPositionOnSnake(const Vector2& pos, const Snake& snake) {
+    // Check head position.
+    if (pos.x == snake.head.x && pos.y == snake.head.y) return true;
+
+    // Check tail positions.
+    for (int i = 0; i < snake.Length; ++i) {
+        if (pos.x == snake.tail[i].x && pos.y == snake.tail[i].y) return true;
+    }
+
+    return false;
+}
+
+// Places the apple in a random position that is not occupied by the snake.
 void GameManager::RandomizeApplePosition() {
-    while (true) {
+    do {
         apple.x = GetRandomValue(0, GRID_WIDTH - 1);
         apple.y = GetRandomValue(0, GRID_HEIGHT - 1);
-
-        if ((apple.x == snake.head.x) && (apple.y == snake.head.y)) continue;
-
-        bool cont = false;
-
-        for (int i = snake.Lenght - 1; i >= 0; i--) {
-            if ((apple.x == snake.tail[i].x) && (apple.y == snake.tail[i].y)) {
-                cont = true;
-                break;
-            }
-        }
-
-        if (cont) continue;
-
-        break;
-    }
+    } while (IsPositionOnSnake(apple, snake));
 }
 
 bool GameManager::Update(MenuManager* MM) {
@@ -62,7 +63,7 @@ bool GameManager::Update(MenuManager* MM) {
         snake.Dir = tempDir;
 
         // Tail Updater
-        for (int i = snake.Lenght; i > 0; i--) {
+        for (int i = snake.Length; i > 0; i--) {
             snake.tail[i].x = snake.tail[i - 1].x;
             snake.tail[i].y = snake.tail[i - 1].y;
         }
@@ -91,7 +92,7 @@ bool GameManager::Update(MenuManager* MM) {
         }
 
         // Tail Collision Detection
-        for (int i = snake.Lenght - 1; i >= 0 && snake.Alive; i--) {
+        for (int i = snake.Length - 1; i >= 0 && snake.Alive; i--) {
             if ((snake.head.x == snake.tail[i].x) && (snake.head.y == snake.tail[i].y)) snake.Alive = false;
         }
 
@@ -104,7 +105,7 @@ bool GameManager::Update(MenuManager* MM) {
 
         // Apple Detection
         if (snake.head.x == apple.x && snake.head.y == apple.y) {
-            snake.Lenght++;
+            snake.Length++;
             RandomizeApplePosition();
         }
     }
@@ -127,7 +128,7 @@ void GameManager::Draw(MenuManager* MM){
         MM->APPLE);
 
     // Tail
-    for (int i = snake.Lenght - 1; i >= 0; i--) {
+    for (int i = snake.Length - 1; i >= 0; i--) {
         DrawRectangle(
             snake.tail[i].x * GRID_UNIT_SIZE + BORDER_SIZE,
             snake.tail[i].y * GRID_UNIT_SIZE + BORDER_SIZE,
